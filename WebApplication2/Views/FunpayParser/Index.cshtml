@@ -1,0 +1,253 @@
+﻿@using System.Linq
+@using WebApplication2.Models.VM
+
+<h2>Данные</h2>
+
+<!-- Кнопка для скачивания архива с отчетами -->
+<form action="@Url.Action("DownloadReportsArchive", "Reports")" method="get">
+    <button type="submit" class="btn btn-primary">
+        Скачать Архив с отчетами
+    </button>
+</form>
+
+<form method="get" action="@Url.Action("GenerateReport", "Reports")">
+    <button type="submit" class="btn btn-primary">Сгенерировать отчет</button>
+</form>
+
+<form method="get" action="@Url.Action("GetData", "FunpayParser")">
+    <button type="submit" class="btn btn-primary">Обновить данные</button>
+</form>
+
+<!-- Bootstrap Tabs -->
+<ul class="nav nav-tabs" id="dataTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.ActiveTab == "sellers" ? "active" : "")" id="sellers-tab" data-bs-toggle="tab" data-bs-target="#sellers" type="button" role="tab" aria-controls="sellers" aria-selected="@(Model.ActiveTab == "sellers" ? "true" : "false")">
+            Продавцы
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.ActiveTab == "lots" ? "active" : "")" id="lots-tab" data-bs-toggle="tab" data-bs-target="#lots" type="button" role="tab" aria-controls="lots" aria-selected="@(Model.ActiveTab == "lots" ? "true" : "false")">
+            Лоты
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.ActiveTab == "games" ? "active" : "")" id="games-tab" data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="@(Model.ActiveTab == "games" ? "true" : "false")">
+            Игры
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content mt-3" id="dataTabsContent">
+    <!-- Sellers Table -->
+    <div class="tab-pane fade @(Model.ActiveTab == "sellers" ? "show active" : "")" id="sellers" role="tabpanel" aria-labelledby="sellers-tab">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Количество отзывов</th>
+                    <th>Информация</th>
+                    <th>Рейтинг</th>
+                    <th>Количество лотов</th>
+                    <th>Удалить</th>
+                    <th>Изменить</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var seller in Model.Sellers)
+                {
+                    <tr>
+                        <td>@seller.SellerName</td>
+                        <td>@seller.ReviewCount</td>
+                        <td>@seller.SellerInfo</td>
+                        <td>@seller.RatingStar</td>
+                        <td>@seller.LotsCount</td>
+                        <td>
+                            <!-- Кнопка удаления -->
+                            <form method="post" action="@Url.Action("DeleteSeller", "FunpayParser", new { id = seller.Id })" onsubmit="return confirm('Вы уверены, что хотите удалить эту игру?');">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </td>
+                        <td>
+                            <!-- Кнопка изменения -->
+                            <a class="btn btn-warning" href="@Url.Action("EditSeller", "FunpayParser", new { id = seller.Id })">
+                                Изменить
+                            </a>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination for Sellers -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (Model.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, tab = Model.ActiveTab })" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                }
+
+                @for (int i = Model.CurrentPage - 3; i <= Model.CurrentPage + 3; i++)
+                {
+                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, tab = Model.ActiveTab })">@i</a>
+                    </li>
+                }
+
+                @if (Model.CurrentPage < Model.TotalPagesSellers)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, tab = Model.ActiveTab })" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Lots Table -->
+    <div class="tab-pane fade @(Model.ActiveTab == "lots" ? "show active" : "")" id="lots" role="tabpanel" aria-labelledby="lots-tab">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Игра</th>
+                    <th>Категория</th>
+                    <th>Сервер</th>
+                    <th>Продавец</th>
+                    <th>Количество</th>
+                    <th>Описание</th>
+                    <th>Цена</th>
+                    <th>Удалить</th>
+                    <th>Изменить</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var lot in Model.Lots)
+                {
+                    <tr>
+                        <td>@lot.GameName</td>
+                        <td>@lot.Category</td>
+                        <td>@lot.ServerName</td>
+                        <td>@lot.SellerName</td>
+                        <td>@lot.Amount</td>
+                        <td>@lot.Description</td>
+                        <td>@lot.Price</td>
+                        <td>
+                            <!-- Кнопка удаления -->
+                            <form method="post" action="@Url.Action("DeleteLot", "FunpayParser", new { id = lot.Id })" onsubmit="return confirm('Вы уверены, что хотите удалить эту игру?');">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </td>
+                        <td>
+                            <!-- Кнопка изменения -->
+                            <a class="btn btn-warning" href="@Url.Action("EditLot", "FunpayParser", new { id = lot.Id })">
+                                Изменить
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination for Lots -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (Model.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, tab = Model.ActiveTab })" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                }
+
+                @for (int i = Model.CurrentPage-3; i <= Model.CurrentPage+3; i++)
+                {
+                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, tab = Model.ActiveTab })">@i</a>
+                    </li>
+                }
+
+                @if (Model.CurrentPage < Model.TotalPagesLots)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, tab = Model.ActiveTab })" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+
+        <!-- Games Table -->
+        <div class="tab-pane fade @(Model.ActiveTab == "games" ? "show active" : "")" id="games" role="tabpanel" aria-labelledby="games-tab">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Название игры</th>
+                        <th>Категория</th>
+                        <th>Удалить</th>
+                        <th>Изменить</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var game in Model.Games)
+                    {
+                        <tr>
+                            <td>@game.GameName</td>
+                            <td>@game.Category</td>
+                        <td>
+                            <!-- Кнопка удаления -->
+                            <form method="post" action="@Url.Action("DeleteGame", "FunpayParser", new { id = game.GamesCategoryId })" onsubmit="return confirm('Вы уверены, что хотите удалить эту игру?');">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </td>
+                        <td>
+                            <!-- Кнопка изменения -->
+                            <a class="btn btn-warning" href="@Url.Action("EditGame", "FunpayParser", new { id = game.GamesCategoryId })">
+                                Изменить
+                            </a>
+                        </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Pagination for Games -->
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, tab = Model.ActiveTab })" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = Model.CurrentPage - 3; i <= Model.CurrentPage + 3; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i, tab = Model.ActiveTab })">@i</a>
+                        </li>
+                    }
+
+                    @if (Model.CurrentPage < Model.TotalPagesGames)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, tab = Model.ActiveTab })" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+</div>

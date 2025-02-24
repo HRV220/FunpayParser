@@ -1,0 +1,31 @@
+﻿@model IEnumerable<WebApplication2.Models.VM.LotViewModel>
+
+<h2>Список лотов</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Игра</th>
+            <th>Категория</th>
+            <th>Сервер</th>
+            <th>Продавец</th>
+            <th>Количество</th>
+            <th>Описание</th>
+            <th>Цена</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lot in Model)
+        {
+            <tr>
+                <td>@lot.GameName</td>
+                <td>@lot.Category</td>
+                <td>@lot.ServerName</td>
+                <td>@lot.SellerName</td>
+                <td>@lot.Amount</td>
+                <td>@lot.Description</td>
+                <td>@lot.Price</td>
+            </tr>
+        }
+    </tbody>
+</table>
